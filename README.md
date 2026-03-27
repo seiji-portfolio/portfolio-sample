@@ -1,156 +1,266 @@
-# UEP v5.0 – Unified Enterprise Platform
-100+ モジュールを統合したエンタープライズ向け API / データ / イベント基盤
+1. System Overview / システム概要
+English
+UEP v5.0 is an enterprise-grade platform that unifies API services, data storage, event streaming, and observability into a single cohesive architecture.
+It is designed to provide high scalability, fault tolerance, and operational visibility across all components, enabling reliable and maintainable system operations in complex enterprise environments.
 
----
+日本語訳
+UEP v5.0 は、API、データストレージ、イベントストリーミング、可観測性を
+1つの統合アーキテクチャとして構築したエンタープライズ向けプラットフォーム です。
+高いスケーラビリティ、フォールトトレランス、運用可視性を提供し、複雑なエンタープライズ環境においても信頼性の高い運用を可能にします。
 
-## 🎥 Demo（39秒）
-プロダクト全体の動作を 39 秒にまとめたデモ動画です。  
-（※ 面談時に URL を共有）
+2. Architecture Principles / アーキテクチャ原則
+English
+UEP v5.0 is built on the following architectural principles:
 
----
+Loose coupling
 
-## 📘 Overview（概要）
-UEP v5.0 は、API 基盤・データ基盤・イベントストリーミング・監視・MLOps を  
-**1つの統合アーキテクチャとして構築したエンタープライズ向けプラットフォーム** です。
+Scalability
 
-本システムは、API レイヤー・データレイヤー・イベントレイヤー・監視レイヤーを疎結合に保ちながら、  
-高い可用性・拡張性・運用性を実現するよう設計されています。
+Observability
 
-- FastAPI による高スループット API  
-- PostgreSQL / Redis / MinIO によるデータ基盤  
-- Kafka による非同期イベント駆動アーキテクチャ  
-- Prometheus / Grafana / Jaeger / ELK による可観測性基盤  
-- Docker Compose によるローカル統合環境  
-- 100 以上の API / モジュールを統合した構造  
+Idempotency
 
----
+Data consistency
 
-## 📗 Architecture（アーキテクチャ）
-※ GitHub には簡易図を掲載（詳細図は面談時に提示）
+Fault tolerance
 
-本システムは、クライアントからのリクエストを **API Gateway（Kong / Envoy）** で受け付け、  
-認証・認可・ルーティング・レートリミット・ロギングなどのゲートウェイ機能を適用した上で  
-**FastAPI** に転送する構成となっています。
+Operational simplicity
 
-FastAPI はアプリケーション層として、以下の複数のデータストアと連携します。
+日本語訳
+UEP v5.0 は以下のアーキテクチャ原則に基づいて設計されています：
 
-- **PostgreSQL**：トランザクションデータ、永続データの管理  
-- **Redis**：キャッシュ、セッション、低レイテンシ参照データ  
-- **MinIO**：ファイル、バイナリ、ETL 中間生成物、Data Lake のストレージ
+疎結合
 
-アプリケーション層で発生したイベントは **Kafka** に Publish され、  
-非同期処理として **Consumer** がイベントを購読します。
+スケーラビリティ
 
-Consumer では以下の処理を実行します：
+可観測性
 
-- データ正規化  
-- フィルタリング  
-- 集約  
-- スキーマ変換  
-- バッチ/ストリーム統合 ETL  
+冪等性
 
-処理後のデータは **Data Lake（MinIO またはオブジェクトストレージ）** に蓄積され、  
-分析基盤や後続処理のためのソースとして利用されます。
+データ整合性
 
-これにより、API レイヤーと分析レイヤーを疎結合に保ちながら、  
-リアルタイム性・スケーラビリティ・耐障害性を両立したデータパイプラインを構築しています。
+フォールトトレランス
 
-運用監視については以下の構成です。
+運用のシンプルさ
 
-- **Prometheus**：FastAPI、Kafka、Consumer、DB などのメトリクス収集  
-- **Grafana**：Prometheus のメトリクスを可視化  
-- **Jaeger**：API Gateway → FastAPI → DB/Kafka の分散トレーシング  
-- **ELK（Elasticsearch / Logstash / Kibana）**：アプリケーションログ・イベントログの集中管理  
+3. High-level Architecture / 全体アーキテクチャ
+English
+Requests flow through the API Gateway (Kong/Envoy), which handles authentication, authorization, routing, and rate limiting.
+FastAPI processes application logic and interacts with PostgreSQL, Redis, and MinIO.
+Events are published to Kafka, consumed by ETL workers, and stored in the Data Lake.
+Prometheus, Grafana, Jaeger, and ELK provide full observability across the system.
 
-これらにより、API のレスポンス遅延、Kafka の遅延、Consumer の処理詰まり、  
-DB の負荷状況などをリアルタイムに可視化し、  
-障害発生時のトラブルシューティングを迅速に行える運用基盤を実現しています。
+日本語訳
+リクエストは API Gateway（Kong/Envoy）を通過し、認証・認可・ルーティング・レート制御が適用されます。
+FastAPI はアプリケーションロジックを処理し、PostgreSQL、Redis、MinIO と連携します。
+イベントは Kafka に Publish され、ETL ワーカーが処理し、Data Lake に保存されます。
+Prometheus、Grafana、Jaeger、ELK により、システム全体の可観測性が確保されます。
 
----
+4. Component Responsibilities / コンポーネントの責務
+English
+API Gateway (Kong/Envoy): Authentication, authorization, routing, rate limiting
 
-## 📚 Tech Stack（技術構成）
+FastAPI: Application logic, async processing, schema-driven development
 
-### Backend / API
-- FastAPI（非同期 I/O による高スループット API）
-- Python
-- OpenAPI（スキーマ駆動開発）
-- Kong / Envoy（認証・認可・ルーティング）
+PostgreSQL: Persistent data storage
 
-### Data / Storage
-- PostgreSQL（永続データ管理）
-- Redis（キャッシュ・セッション）
-- MinIO（オブジェクトストレージ）
-- ETL / Data Lake（分析基盤）
+Redis: Caching and session management
 
-### Event Streaming
-- Kafka（Producer / Consumer / Topic 設計）
+MinIO: Object storage and Data Lake backend
 
-### Monitoring / Logging
-- Prometheus（メトリクス収集）
-- Grafana（可視化）
-- Jaeger（分散トレーシング）
-- ELK Stack（ログ分析）
+Kafka: Event streaming backbone
 
-### Infrastructure
-- Docker / Docker Compose
-- Vault（Secrets 管理）
+Consumer (ETL): Normalization, filtering, aggregation, schema transformation
 
-### Quality
-- Playwright（E2E テスト）
-- Locust（負荷試験）
+Observability Stack: Prometheus, Grafana, Jaeger, ELK
 
----
+日本語訳
+API Gateway（Kong/Envoy）： 認証、認可、ルーティング、レート制御
 
-## 🔍 Key Features（主要機能）
+FastAPI： アプリケーションロジック、非同期処理、スキーマ駆動開発
 
-### ✔ API 基盤
-- FastAPI による高速 API  
-- OpenAPI 自動生成  
-- 認証・認可（Kong / Envoy）  
+PostgreSQL： 永続データ管理
 
-### ✔ データ基盤
-- PostgreSQL / Redis / MinIO  
-- スキーマ設計  
-- ETL パイプライン  
+Redis： キャッシュ、セッション管理
 
-### ✔ イベント基盤
-- Kafka による非同期処理  
-- Producer / Consumer  
-- Topic 設計  
+MinIO： オブジェクトストレージ、Data Lake バックエンド
 
-### ✔ 監視・運用基盤
-- `/metrics` → Prometheus  
-- `/targets` → Scrape 状況  
-- Grafana ダッシュボード  
-- Jaeger トレーシング  
+Kafka： イベントストリーミング基盤
 
----
+Consumer（ETL）： 正規化、フィルタリング、集約、スキーマ変換
 
-## 🖥 Screenshots（画面例）
-※ ロゴなしの画面を掲載  
-- FastAPI `/docs`  
-- Prometheus `/metrics`  
-- Prometheus `/targets`  
-- Grafana ダッシュボード  
-- Jaeger トレース画面  
+可観測性スタック： Prometheus、Grafana、Jaeger、ELK
 
----
+5. Data Flow / データフロー
+English
+Client → API Gateway
 
-## 🚀 Development Flow（開発フロー）
-1. 設計（AI 補助）  
-2. API 実装  
-3. DB / スキーマ設計  
-4. Kafka イベント設計  
-5. 監視・ログ基盤構築  
-6. E2E / 負荷テスト  
-7. デモ動画作成  
+API Gateway → FastAPI
 
----
+FastAPI → DB / Cache / Object Storage
 
-## 👤 Author（開発者）
-**小川 清志（Seiji Ogawa）**  
-AI R&D Engineer / Backend / Data / Event Streaming  
+FastAPI → Kafka (event publish)
 
-- LAPRAS：https://lapras.com/public/AEKCECT  
-- Zenn：https://zenn.dev/seiji_ogawa  
-- Qiita：https://qiita.com/seiji0514  
+Kafka → Consumer (ETL processing)
+
+Consumer → Data Lake
+
+Observability tools collect metrics, logs, and traces
+
+日本語訳
+クライアント → API Gateway
+
+API Gateway → FastAPI
+
+FastAPI → DB / Cache / Object Storage
+
+FastAPI → Kafka（イベント Publish）
+
+Kafka → Consumer（ETL 処理）
+
+Consumer → Data Lake
+
+可観測性ツールがメトリクス・ログ・トレースを収集
+
+6. Event-driven Design / イベント駆動設計
+English
+Topic design based on domain boundaries
+
+Partition strategy for throughput and ordering
+
+Exactly-once / At-least-once semantics
+
+Consumer Groups for horizontal scaling
+
+Schema evolution and versioning
+
+Retry strategy with exponential backoff
+
+Dead Letter Queue (DLQ) support
+
+日本語訳
+ドメイン境界に基づく Topic 設計
+
+スループットと順序保証のためのパーティション戦略
+
+Exactly-once / At-least-once セマンティクス
+
+水平スケールのための Consumer Group
+
+スキーマエボリューションとバージョニング
+
+Exponential backoff を用いたリトライ戦略
+
+Dead Letter Queue（DLQ）対応
+
+7. Data Platform & ETL / データ基盤と ETL
+English
+Real-time stream processing
+
+Batch processing for large-scale aggregation
+
+Data Lake partitioning (time, event type, schema version)
+
+Data quality validation
+
+Schema evolution handling
+
+日本語訳
+リアルタイムストリーム処理
+
+大規模集計のためのバッチ処理
+
+Data Lake のパーティション戦略（時間・イベントタイプ・スキーマバージョン）
+
+データ品質検証
+
+スキーマエボリューション対応
+
+8. Observability / 可観測性
+English
+Prometheus Exporters for API, Kafka, DB, Consumers
+
+RED / USE / Four Golden Signals
+
+Grafana dashboards for SLO/SLA monitoring
+
+Jaeger tracing with span propagation
+
+ELK for log normalization and indexing
+
+日本語訳
+API / Kafka / DB / Consumer 用 Prometheus Exporter
+
+RED / USE / Four Golden Signals
+
+SLO/SLA 監視のための Grafana ダッシュボード
+
+スパン伝播を用いた Jaeger トレーシング
+
+ログ正規化とインデックス管理のための ELK
+
+9. Scalability & Reliability / スケーラビリティと信頼性
+English
+Horizontal scaling for FastAPI, Kafka, and Consumers
+
+Idempotent ETL processing
+
+Retry strategies with DLQ
+
+Fault tolerance through replication and failover
+
+日本語訳
+FastAPI、Kafka、Consumer の水平スケール
+
+冪等性を担保した ETL 処理
+
+DLQ を用いたリトライ戦略
+
+レプリケーションとフェイルオーバーによるフォールトトレランス
+
+10. Tech Stack / 技術スタック
+English
+FastAPI, PostgreSQL, Redis, MinIO, Kafka, Prometheus, Grafana, Jaeger, ELK, Docker Compose, Vault, Playwright, Locust.
+
+日本語訳
+FastAPI、PostgreSQL、Redis、MinIO、Kafka、Prometheus、Grafana、Jaeger、ELK、Docker Compose、Vault、Playwright、Locust。
+
+11. Development Flow / 開発フロー
+English
+Architecture design (AI-assisted)
+
+API implementation
+
+Database & schema design
+
+Kafka event design
+
+Observability setup
+
+E2E & load testing
+
+Demo creation
+
+日本語訳
+アーキテクチャ設計（AI 補助）
+
+API 実装
+
+DB・スキーマ設計
+
+Kafka イベント設計
+
+可観測性構築
+
+E2E・負荷テスト
+
+デモ作成
+
+12. Author / 開発者
+English
+Seiji Ogawa  
+AI-assisted R&D Engineer / Backend / Data / Event Streaming
+
+日本語訳
+小川 清志（Seiji Ogawa）  
+AI R&D Engineer / Backend / Data / Event Streaming
