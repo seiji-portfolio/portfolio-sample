@@ -1,5 +1,5 @@
 # UEP v5.0 – Unified Enterprise Platform
-**100+ モジュールを統合したエンタープライズ向け API / データ / イベント基盤**
+100+ モジュールを統合したエンタープライズ向け API / データ / イベント基盤
 
 ---
 
@@ -13,81 +13,91 @@
 UEP v5.0 は、API 基盤・データ基盤・イベントストリーミング・監視・MLOps を  
 **1つの統合アーキテクチャとして構築したエンタープライズ向けプラットフォーム** です。
 
-- FastAPI を中心とした API 設計・実装  
-- PostgreSQL / Redis / MinIO を用いたデータ基盤  
-- Kafka によるイベントストリーミング  
-- Prometheus / Grafana / Jaeger による監視・トレーシング  
+本システムは、API レイヤー・データレイヤー・イベントレイヤー・監視レイヤーを疎結合に保ちながら、  
+高い可用性・拡張性・運用性を実現するよう設計されています。
+
+- FastAPI による高スループット API  
+- PostgreSQL / Redis / MinIO によるデータ基盤  
+- Kafka による非同期イベント駆動アーキテクチャ  
+- Prometheus / Grafana / Jaeger / ELK による可観測性基盤  
 - Docker Compose によるローカル統合環境  
 - 100 以上の API / モジュールを統合した構造  
 
 ---
 
-## ■ Architecture（アーキテクチャ）
+## 📗 Architecture（アーキテクチャ）
 ※ GitHub には簡易図を掲載（詳細図は面談時に提示）
 
-本システムは、クライアントからのリクエストを API Gateway（Kong/Envoy）で受け付け、  
-認証・認可・ルーティングを行った上で FastAPI に転送する構成となっています。
+本システムは、クライアントからのリクエストを **API Gateway（Kong / Envoy）** で受け付け、  
+認証・認可・ルーティング・レートリミット・ロギングなどのゲートウェイ機能を適用した上で  
+**FastAPI** に転送する構成となっています。
 
 FastAPI はアプリケーション層として、以下の複数のデータストアと連携します。
 
-- **PostgreSQL**：トランザクションデータや永続データを管理  
-- **Redis**：セッション管理・キャッシュ・高速参照用データを保持  
-- **MinIO**：ファイル・バイナリデータ・ETL 中間生成物の保存
+- **PostgreSQL**：トランザクションデータ、永続データの管理  
+- **Redis**：キャッシュ、セッション、低レイテンシ参照データ  
+- **MinIO**：ファイル、バイナリ、ETL 中間生成物、Data Lake のストレージ
 
 アプリケーション層で発生したイベントは **Kafka** に Publish され、  
-非同期処理として Consumer がイベントを購読します。  
-Consumer では、データ正規化・フィルタリング・集約などの **ETL 処理** を実行し、  
-最終的に **Data Lake（MinIO またはオブジェクトストレージ）** に蓄積します。
+非同期処理として **Consumer** がイベントを購読します。
 
-これにより、API レイヤーとバッチ/分析レイヤーを疎結合に保ちながら、  
-リアルタイム性とスケーラビリティを両立したデータパイプラインを構築しています。
+Consumer では以下の処理を実行します：
+
+- データ正規化  
+- フィルタリング  
+- 集約  
+- スキーマ変換  
+- バッチ/ストリーム統合 ETL  
+
+処理後のデータは **Data Lake（MinIO またはオブジェクトストレージ）** に蓄積され、  
+分析基盤や後続処理のためのソースとして利用されます。
+
+これにより、API レイヤーと分析レイヤーを疎結合に保ちながら、  
+リアルタイム性・スケーラビリティ・耐障害性を両立したデータパイプラインを構築しています。
 
 運用監視については以下の構成です。
 
-- **Prometheus**：FastAPI、Kafka、Consumer、DB などのメトリクスを収集  
-- **Grafana**：Prometheus のメトリクスを可視化し、ダッシュボードとして提供  
-- **Jaeger**：API Gateway → FastAPI → DB/Kafka の分散トレーシングを実施  
-- **ELK（Elasticsearch / Logstash / Kibana）**：アプリケーションログ・イベントログを集中管理
+- **Prometheus**：FastAPI、Kafka、Consumer、DB などのメトリクス収集  
+- **Grafana**：Prometheus のメトリクスを可視化  
+- **Jaeger**：API Gateway → FastAPI → DB/Kafka の分散トレーシング  
+- **ELK（Elasticsearch / Logstash / Kibana）**：アプリケーションログ・イベントログの集中管理  
 
 これらにより、API のレスポンス遅延、Kafka の遅延、Consumer の処理詰まり、  
 DB の負荷状況などをリアルタイムに可視化し、  
 障害発生時のトラブルシューティングを迅速に行える運用基盤を実現しています。
-
-
-```
 
 ---
 
 ## 📚 Tech Stack（技術構成）
 
 ### Backend / API
-- FastAPI  
-- Python  
-- OpenAPI  
-- Kong / Envoy（認証・認可）
+- FastAPI（非同期 I/O による高スループット API）
+- Python
+- OpenAPI（スキーマ駆動開発）
+- Kong / Envoy（認証・認可・ルーティング）
 
 ### Data / Storage
-- PostgreSQL  
-- Redis  
-- MinIO  
-- ETL / Data Lake
+- PostgreSQL（永続データ管理）
+- Redis（キャッシュ・セッション）
+- MinIO（オブジェクトストレージ）
+- ETL / Data Lake（分析基盤）
 
 ### Event Streaming
 - Kafka（Producer / Consumer / Topic 設計）
 
 ### Monitoring / Logging
-- Prometheus  
-- Grafana  
-- Jaeger  
-- ELK Stack  
+- Prometheus（メトリクス収集）
+- Grafana（可視化）
+- Jaeger（分散トレーシング）
+- ELK Stack（ログ分析）
 
 ### Infrastructure
-- Docker / Docker Compose  
+- Docker / Docker Compose
 - Vault（Secrets 管理）
 
 ### Quality
-- Playwright（E2E テスト）  
-- Locust（負荷試験）  
+- Playwright（E2E テスト）
+- Locust（負荷試験）
 
 ---
 
@@ -96,17 +106,17 @@ DB の負荷状況などをリアルタイムに可視化し、
 ### ✔ API 基盤
 - FastAPI による高速 API  
 - OpenAPI 自動生成  
-- 認証・認可（Kong / Envoy）
+- 認証・認可（Kong / Envoy）  
 
 ### ✔ データ基盤
 - PostgreSQL / Redis / MinIO  
 - スキーマ設計  
-- ETL パイプライン
+- ETL パイプライン  
 
 ### ✔ イベント基盤
 - Kafka による非同期処理  
 - Producer / Consumer  
-- Topic 設計
+- Topic 設計  
 
 ### ✔ 監視・運用基盤
 - `/metrics` → Prometheus  
@@ -144,5 +154,3 @@ AI R&D Engineer / Backend / Data / Event Streaming
 - LAPRAS：https://lapras.com/public/AEKCECT  
 - Zenn：https://zenn.dev/seiji_ogawa  
 - Qiita：https://qiita.com/seiji0514  
-
----
