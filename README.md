@@ -1,3 +1,16 @@
+# 👋 Hi, I'm **Seiji Ogawa**
+### AI-assisted R&D Engineer | Enterprise Architecture / Data Platform / Event Streaming
+
+I design and build integrated enterprise platforms that unify **API**, **Data**, **Event Streaming**, and **Observability** into a cohesive architecture.  
+My focus is on **scalability**, **fault tolerance**, **data consistency**, and **operational visibility** — enabling reliable systems that are easy to maintain and evolve.
+
+日本語補足：  
+API・データ基盤・イベントストリーミング・可観測性を統合した  
+**エンタープライズ向けアーキテクチャの設計・開発** を専門としています。  
+スケーラビリティ、フォールトトレランス、データ整合性、運用可視性を重視した  
+堅牢なシステム構築を得意としています。
+
+
 # UEP v5.0 – Unified Enterprise Platform  
 ## Architect-level README (English → Japanese)
 
