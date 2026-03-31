@@ -1,4 +1,4 @@
-# Seiji Ogawa（小川 清志 / おがわ せいじ）
+# 小川 清志（おがわ せいじ）
 ### AI-assisted R&D Engineer | Enterprise Architecture / Data Platform / Event Streaming
 
 I design and build integrated enterprise platforms that unify **API**, **Data**, **Event Streaming**, and **Observability** into a cohesive architecture.  
